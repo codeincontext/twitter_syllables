@@ -11,6 +11,8 @@ defmodule TwitterSyllables.Supervisor do
       # worker(TwitterSyllables.Worker, [])
     ]
 
+    TwitterSyllables.WordParser.parse_file
+
     # See http://elixir-lang.org/docs/stable/Supervisor.Behaviour.html
     # for other strategies and supported options
     supervise(children, strategy: :one_for_one)
