@@ -1,36 +1,38 @@
 defmodule TwitterSyllables.WordParser do
+  use GenServer.Behaviour
 
-  def parse_file do
+  def start_link do
+    :gen_server.start_link({ :local, :word_parser }, __MODULE__, [], [])
+  end
+  def init(state) do
+    {:ok, parse_file}
+  end
+
+  def handle_call({:query, word}, _from, state) do
+    result = HashDict.fetch(state, word)
+    { :reply, result, state }
+  end
+  
+  defp parse_file do
     stream = File.binstream! "cmudict.0.7a"
-    stream
+
+    dict = stream
       |> Stream.filter(&comments_filter/1)
-      |> Enum.each(&process_line/1)
+      |> Stream.map(&process_line/1)
+      |> HashDict.new
+
+    IO.inspect dict
   end
 
   defp process_line(line) do
     [word | phonetics] = String.split(line)
 
-    IO.puts word
-    IO.puts count_syllables_for_codes(phonetics)
-  end
-
-  defp count_syllables_for_codes(codes) do
-    Enum.count codes, &Regex.match?(%r/[0-9]$/, &1)
+    count = Enum.count phonetics, &Regex.match?(%r/[0-9]$/, &1)
+    {word, count}
   end
 
   defp comments_filter(word) do
     not String.starts_with?(word, ";;;")
-  end
-
-  def get_words do
-
-  end
-
-
-  def syllables_in_word(word) do
-    # look in lookup
-    # if word: lookat number of syllables
-  # if not, do the other method
   end
 
 end
